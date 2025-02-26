@@ -19,11 +19,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -53,10 +57,17 @@ import com.example.adminpharmaapp.viewModel.AppViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: AppViewModel = hiltViewModel()) {
+
+    var refreshTrigger by remember { mutableStateOf(false) }
     val state = viewModel.getAllUserState.collectAsState()
     val userData = state.value.data?.body() ?: emptyList()
     val updateState = viewModel.updateUserState.collectAsState()
     val context = LocalContext.current
+
+    LaunchedEffect(refreshTrigger) {
+        viewModel.getUser() // Call API to refresh user list
+    }
+
 
     val specificDeleteState = viewModel.deleteSpecificUserState.collectAsState()
 
@@ -176,11 +187,13 @@ fun HomeScreen(navController: NavHostController, viewModel: AppViewModel = hiltV
                                     user_id = userData.user_id,
                                     isAprooved = 1
                                 )
+                                refreshTrigger = !refreshTrigger
                             },
                             onClickDelete = {
                                 viewModel.deleteSpecificUser(
                                     user_id = userData.user_id
                                 )
+                                refreshTrigger = !refreshTrigger
 
                             }
 
@@ -232,42 +245,51 @@ fun EachCard(
         ) {
             Text(
                 text = "Name: $name",
+                style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(start = 10.dp),
 
                 )
             Text(
                 text = "Email: $email",
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(start = 10.dp)
             )
             Text(
                 text = "Phone: $phone",
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(start = 10.dp)
             )
             Text(
                 text = "User ID: $userId",
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(start = 10.dp)
             )
             Spacer(modifier = Modifier.height(10.dp))
 
             Row(modifier = Modifier.fillMaxWidth()) {
                 if (isApproved == 0) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
+
                         Button(
                             onClick = {
                                 onClickApproved()
 
-                            }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                    contentColor =Color.Black,
+                                containerColor = Color.Red
+                            )
 
                         ) {
                             Text(text = "Approve")
                         }
-                    }
+
                 } else {
                     Button(
-                        onClick = {}
+                        onClick = {},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Green,
+                            contentColor = Color.Black
+                        )
                     ) {
                         Text(text = "Block")
                     }
@@ -275,7 +297,11 @@ fun EachCard(
                 Spacer(modifier = Modifier.width(100.dp))
                 Button(onClick = {
                     onClickDelete()
-                }) {
+                },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Black,
+                        contentColor = Color.White
+                    )) {
                     Text(text = "Delete")
                 }
 

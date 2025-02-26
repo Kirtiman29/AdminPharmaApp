@@ -9,10 +9,12 @@ import com.example.adminpharmaapp.data_layer.response.AddProductResponse
 import com.example.adminpharmaapp.data_layer.response.DeleteSpecificUserResponce
 import com.example.adminpharmaapp.data_layer.response.GetProductResponse
 import com.example.adminpharmaapp.data_layer.response.OrderDetailResponce
+import com.example.adminpharmaapp.data_layer.response.UpdateApminProductStockResponce
 import com.example.adminpharmaapp.data_layer.response.UpdateOrderResponse
 import com.example.adminpharmaapp.data_layer.response.UpdateProductResponse
 import com.example.adminpharmaapp.data_layer.response.UpdateUserResponse
 import com.example.adminpharmaapp.data_layer.response.getAllUserResponse
+import com.example.adminpharmaapp.data_layer.response.getSpecificProductResponce
 import com.example.adminpharmaapp.repo.Repo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -46,32 +48,112 @@ class AppViewModel @Inject constructor(private val repo: Repo) : ViewModel() {
     val getOrderDetailState = _getOrderDetailState.asStateFlow()
 
 
-
     private val _updateProductState = MutableStateFlow(UpdateProductState())
     val updateProductState = _updateProductState.asStateFlow()
 
     private val _updateOrderState = MutableStateFlow(UpdateOrderState())
     val updateOrderState = _updateOrderState.asStateFlow()
 
+    private val _getSpecificProductState = MutableStateFlow(GetSpecificProductState())
+    val getSpecificProductState = _getSpecificProductState.asStateFlow()
+
+    private val _updateAdminProductStockState = MutableStateFlow(UpdateApminProductStockState())
+    val updateAdminProductStockState = _updateAdminProductStockState.asStateFlow()
+
+    fun updateAdminProductStock(
+        product_id: String,
+        stock: Int,
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.updateAdminProductStockRepo(
+                product_id = product_id,
+                stock = stock
+            ).collect {
+                when (it) {
+                    is State.Loading -> {
+                        _updateAdminProductStockState.value =
+                            UpdateApminProductStockState(Loading = true)
+                    }
+
+                    is State.Success -> {
+                        _updateAdminProductStockState.value = UpdateApminProductStockState(
+                            Data = it.data as Response<UpdateApminProductStockResponce>,
+                            Loading = false
+                        )
+
+                    }
+
+                    is State.Error -> {
+                        _updateAdminProductStockState.value = UpdateApminProductStockState(
+                            Error = it.message,
+                            Loading = false
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    init {
+        getAllProduct()
+    }
+
+    fun getSpecificProduct(
+        product_id: String,
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.getSpecificProductRepo(
+                product_id = product_id
+            ).collect {
+                when (it) {
+                    is State.Loading -> {
+                        _getSpecificProductState.value = GetSpecificProductState(Loading = true)
+                    }
+
+                    is State.Success -> {
+                        _getSpecificProductState.value = GetSpecificProductState(
+                            Data = it.data as Response<getSpecificProductResponce>,
+                            Loading = false
+                        )
+                    }
+
+                    is State.Error -> {
+                        _getSpecificProductState.value = GetSpecificProductState(
+                            Error = it.message,
+                            Loading = false
+                        )
+                    }
+                }
+
+            }
+        }
+    }
+
     fun updateOrder(
         order_id: String,
         isApproved: Int,
 
-    ){
-        viewModelScope.launch(Dispatchers.IO){
+        ) {
+        viewModelScope.launch(Dispatchers.IO) {
             repo.updateOrderRepo(
                 order_id = order_id,
                 isApproved = isApproved
-            ).collect{
-                when(it){
+            ).collect {
+                when (it) {
                     is State.Loading -> {
                         _updateOrderState.value = UpdateOrderState(Loading = true)
                     }
+
                     is State.Success -> {
-                        _updateOrderState.value = UpdateOrderState(Data = it.data as Response<UpdateOrderResponse> , Loading = false)
+                        _updateOrderState.value = UpdateOrderState(
+                            Data = it.data as Response<UpdateOrderResponse>,
+                            Loading = false
+                        )
                     }
+
                     is State.Error -> {
-                        _updateOrderState.value = UpdateOrderState(Error = it.message, Loading = false)
+                        _updateOrderState.value =
+                            UpdateOrderState(Error = it.message, Loading = false)
                     }
                 }
             }
@@ -85,7 +167,7 @@ class AppViewModel @Inject constructor(private val repo: Repo) : ViewModel() {
         price: Double,
         category: String,
         expiry_date: String,
-    ){
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             repo.updateProductRepo(
                 product_id = product_id,
@@ -96,16 +178,22 @@ class AppViewModel @Inject constructor(private val repo: Repo) : ViewModel() {
                 expiry_date = expiry_date
 
 
-            ).collect{
-                when(it){
+            ).collect {
+                when (it) {
                     is State.Loading -> {
                         _updateProductState.value = UpdateProductState(Loading = true)
                     }
+
                     is State.Success -> {
-                        _updateProductState.value = UpdateProductState(Data = it.data as Response<UpdateProductResponse> , Loading = false)
+                        _updateProductState.value = UpdateProductState(
+                            Data = it.data as Response<UpdateProductResponse>,
+                            Loading = false
+                        )
                     }
+
                     is State.Error -> {
-                        _updateProductState.value = UpdateProductState(Error = it.message, Loading = false)
+                        _updateProductState.value =
+                            UpdateProductState(Error = it.message, Loading = false)
                     }
                 }
             }
@@ -114,23 +202,26 @@ class AppViewModel @Inject constructor(private val repo: Repo) : ViewModel() {
     }
 
 
-    init {
-        getAllProduct()
-    }
-    fun getAllProduct(){
+    fun getAllProduct() {
 
         viewModelScope.launch(Dispatchers.IO) {
-            repo.getAllProductRepo().collect{
-                when(it){
+            repo.getAllProductRepo().collect {
+                when (it) {
                     is State.Loading -> {
                         _getAllProductState.value = GetAllProductState(Loading = true)
                     }
+
                     is State.Success -> {
-                        _getAllProductState.value = GetAllProductState(Data = it.data as Response<GetProductResponse> , Loading = false)
+                        _getAllProductState.value = GetAllProductState(
+                            Data = it.data as Response<GetProductResponse>,
+                            Loading = false
+                        )
                         Log.d("TAG", "getAllProduct: ${it.data}")
                     }
+
                     is State.Error -> {
-                        _getAllProductState.value = GetAllProductState(Error = it.message, Loading = false)
+                        _getAllProductState.value =
+                            GetAllProductState(Error = it.message, Loading = false)
                     }
 
                 }
@@ -140,7 +231,7 @@ class AppViewModel @Inject constructor(private val repo: Repo) : ViewModel() {
 
 
     fun deleteSpecificUser(
-        user_id: String
+        user_id: String,
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             repo.deleteSpecificUserRepo(
@@ -151,20 +242,22 @@ class AppViewModel @Inject constructor(private val repo: Repo) : ViewModel() {
                         _deleteSpecificUserState.value =
                             DeleteSpecificUserState(Loading = true)
                     }
+
                     is State.Success -> {
                         _deleteSpecificUserState.value =
                             DeleteSpecificUserState(
-                            Data = it.data as Response<DeleteSpecificUserResponce>,
-                            Loading = false
-                        )
+                                Data = it.data as Response<DeleteSpecificUserResponce>,
+                                Loading = false
+                            )
 
                     }
+
                     is State.Error -> {
                         _deleteSpecificUserState.value =
                             DeleteSpecificUserState(
-                            Error = it.message,
-                            Loading = false
-                        )
+                                Error = it.message,
+                                Loading = false
+                            )
 
                     }
                 }
@@ -178,27 +271,33 @@ class AppViewModel @Inject constructor(private val repo: Repo) : ViewModel() {
         stock: Int,
         price: Int,
         category: String,
-    ){
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             repo.AddProductRepo(
                 product_name = product_name,
                 stock = stock,
                 price = price,
                 category = category
-                ).collect{
-                    when(it){
-                        is State.Loading -> {
-                            _addProductState.value = AddProductState(Loading = true)
-                        }
-                        is State.Success -> {
-                            _addProductState.value = AddProductState(Data = it.data as Response<AddProductResponse>, Loading = false)
-                        }
-                        is State.Error -> {
-                            _addProductState.value = AddProductState(Error = it.message, Loading = false)
+            ).collect {
+                when (it) {
+                    is State.Loading -> {
+                        _addProductState.value = AddProductState(Loading = true)
+                    }
 
-                        }
+                    is State.Success -> {
+                        _addProductState.value = AddProductState(
+                            Data = it.data as Response<AddProductResponse>,
+                            Loading = false
+                        )
+                    }
+
+                    is State.Error -> {
+                        _addProductState.value =
+                            AddProductState(Error = it.message, Loading = false)
 
                     }
+
+                }
             }
         }
     }
@@ -220,18 +319,22 @@ class AppViewModel @Inject constructor(private val repo: Repo) : ViewModel() {
 
                     is State.Success -> {
                         _updateUserState.value =
-                            UpdateUserState(Data = it.data as Response<UpdateUserResponse>, loading = false)
+                            UpdateUserState(
+                                Data = it.data as Response<UpdateUserResponse>,
+                                loading = false
+                            )
+
                     }
 
                     is State.Error -> {
-                        _updateUserState.value = UpdateUserState(error = it.message, loading = false)
+                        _updateUserState.value =
+                            UpdateUserState(error = it.message, loading = false)
                     }
                 }
             }
 
         }
     }
-
 
 
     init {
@@ -265,19 +368,26 @@ class AppViewModel @Inject constructor(private val repo: Repo) : ViewModel() {
     init {
         getOrderDetail()
     }
-    fun getOrderDetail(){
-        viewModelScope.launch (Dispatchers.IO){
+
+    fun getOrderDetail() {
+        viewModelScope.launch(Dispatchers.IO) {
             repo.getOrderDetailRepo()
-                .collect{
-                    when(it){
+                .collect {
+                    when (it) {
                         is State.Loading -> {
                             _getOrderDetailState.value = GetOrderDetailState(Loading = true)
                         }
+
                         is State.Success -> {
-                            _getOrderDetailState.value = GetOrderDetailState(Data = it.data as Response<OrderDetailResponce>, Loading = false)
+                            _getOrderDetailState.value = GetOrderDetailState(
+                                Data = it.data as Response<OrderDetailResponce>,
+                                Loading = false
+                            )
                         }
+
                         is State.Error -> {
-                            _getOrderDetailState.value = GetOrderDetailState(Error = it.message, Loading = false)
+                            _getOrderDetailState.value =
+                                GetOrderDetailState(Error = it.message, Loading = false)
                         }
                     }
                 }
@@ -287,6 +397,7 @@ class AppViewModel @Inject constructor(private val repo: Repo) : ViewModel() {
 
 
 }
+
 
 data class GetAllUserState(
     val loading: Boolean = false,
@@ -335,5 +446,17 @@ data class UpdateOrderState(
     val Loading: Boolean = false,
     val Error: String? = null,
     val Data: Response<UpdateOrderResponse>? = null,
+)
+
+data class GetSpecificProductState(
+    val Loading: Boolean = false,
+    val Error: String? = null,
+    val Data: Response<getSpecificProductResponce>? = null,
+)
+
+data class UpdateApminProductStockState(
+    val Loading: Boolean = false,
+    val Error: String? = null,
+    val Data: Response<UpdateApminProductStockResponce>? = null,
 )
 

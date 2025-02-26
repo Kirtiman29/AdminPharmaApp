@@ -2,31 +2,13 @@ package com.example.adminpharmaapp.uiLayer
 
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,53 +22,57 @@ import com.example.adminpharmaapp.viewModel.AppViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderDetailScreen(navController: NavHostController, viewModel: AppViewModel = hiltViewModel()) {
-
+    var refreshTrigger by remember { mutableStateOf(false) }
     val state = viewModel.getOrderDetailState.collectAsState()
     val orderDetail = state.value.Data?.body() ?: emptyList()
     val context = LocalContext.current
     val updateOrderState = viewModel.updateOrderState.collectAsState()
 
-    when {
-        updateOrderState.value.Error != null -> {
-            Toast.makeText(context, "${updateOrderState.value.Error}", Toast.LENGTH_SHORT).show()
-        }
+    //val getProductState = viewModel.getSpecificProductState.collectAsState()
+    val getProductState = viewModel.getSpecificProductState.collectAsState()
+    var stock by remember { mutableStateOf(0) }
+    var value1 = getProductState.value.Data?.body()
+    Log.d("om", "Om:  $value1")
 
-        updateOrderState.value.Data != null -> {
+
+
+
+    LaunchedEffect(refreshTrigger) {
+        viewModel.getOrderDetail()
+    }
+
+    LaunchedEffect(updateOrderState.value) {
+        updateOrderState.value.Data?.let {
             Toast.makeText(context, "Order status updated successfully!", Toast.LENGTH_SHORT).show()
-            Log.d("message", "${updateOrderState.value.Data}")
+            Log.d("message", "$it")
+        }
+        updateOrderState.value.Error?.let {
+            Toast.makeText(context, "$it", Toast.LENGTH_SHORT).show()
         }
     }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xff4294FF)
-                ),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xff4294FF)),
                 title = { Text(text = "Order Details") },
-//                navigationIcon = {
-//                    IconButton(onClick = { navController.popBackStack() }) {
-//                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
-//                    }
-//                }
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                }
             )
         }
     ) { paddingValues ->
         when {
             state.value.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
-
             }
-
             state.value.Error != null -> {
                 Toast.makeText(context, "${state.value.Error}", Toast.LENGTH_SHORT).show()
-
             }
-
             state.value.Data != null -> {
                 LazyColumn(
                     modifier = Modifier
@@ -94,7 +80,7 @@ fun OrderDetailScreen(navController: NavHostController, viewModel: AppViewModel 
                         .padding(paddingValues),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    items(orderDetail) {
+                    items(orderDetail) { order ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -106,61 +92,47 @@ fun OrderDetailScreen(navController: NavHostController, viewModel: AppViewModel 
                                     .fillMaxSize()
                                     .padding(16.dp)
                             ) {
-                                Text(
-                                    text = "User Name: ${it.user_name}",
-                                    modifier = Modifier.padding(start = 20.dp, top = 10.dp),
-                                    fontSize = 20.sp
-                                )
-                                Text(
-                                    text = "Product Name: ${it.product_name}",
-                                    modifier = Modifier.padding(start = 20.dp, top = 10.dp),
-                                    fontSize = 20.sp
-                                )
-                                Text(
-                                    text = "Category: ${it.category}",
-                                    modifier = Modifier.padding(start = 20.dp, top = 10.dp),
-                                    fontSize = 20.sp
-                                )
-                                Text(
-                                    text = "Price: ${it.price.toString()}",
-                                    modifier = Modifier.padding(start = 20.dp, top = 10.dp),
-                                    fontSize = 20.sp
-                                )
-                                Text(
-                                    text = "Category: ${it.quantity.toString()}",
-                                    modifier = Modifier.padding(start = 20.dp, top = 10.dp),
-                                    fontSize = 20.sp
-                                )
-                                Text(
-                                    text = "Total Amount: ${it.total_amount}",
-                                    modifier = Modifier.padding(start = 20.dp, top = 10.dp),
-                                    fontSize = 20.sp
-                                )
+                                Text(text = "User Name: ${order.user_name}", fontSize = 20.sp)
+                                Text(text = "Product Name: ${order.product_name}", fontSize = 20.sp)
+                                Text(text = "Category: ${order.category}", fontSize = 20.sp)
+                                Text(text = "Price: ${order.price}", fontSize = 20.sp)
+                                Text(text = "Quantity: ${order.quantity}", fontSize = 20.sp)
+                                Text(text = "Total Amount: ${order.total_amount}", fontSize = 20.sp)
 
 
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(start = 20.dp, top = 10.dp)
-                                ) {
-                                    if (it.isApproved == 0){
+
+                                Row(modifier = Modifier.fillMaxWidth()) {
+                                    if (order.isApproved == 0) {
                                         Button(onClick = {
-                                            viewModel.updateOrder(
-                                                order_id = it.order_id,
-                                                isApproved = 1
-                                            )
-                                            Log.d("TAG", "OrderDetailScreen: ${it.order_id}")
-                                        }) {
+                                            viewModel.updateOrder(order.order_id, isApproved = 1)
+                                           viewModel.getSpecificProduct(product_id = order.product_id)
+//                                            val stock = getProductState.value.Data?.body()?.stock
+//                                            viewModel.updateAdminProductStock(product_id = order.product_id,
+//                                                stock = stock!! - order.quantity)
+                                            refreshTrigger = !refreshTrigger
+                                        },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = Color.Red,
+                                                contentColor = Color.Black
+                                            )) {
                                             Text(text = "Confirm")
                                         }
-                                    }else{
-                                        Button(onClick = {}) {
-                                            Text(text = "Approve")
+                                    } else {
+                                        Button(onClick = {},
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = Color.Green,
+                                                contentColor = Color.Black
+                                            )) {
+                                            Text(text = "Approved")
                                         }
                                     }
 
                                     Spacer(modifier = Modifier.width(100.dp))
-                                    Button(onClick = {}) {
+                                    Button(onClick = {},
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color.Black,
+                                            contentColor = Color.White
+                                        )) {
                                         Text(text = "Delete")
                                     }
                                 }
@@ -168,11 +140,7 @@ fun OrderDetailScreen(navController: NavHostController, viewModel: AppViewModel 
                         }
                     }
                 }
-
             }
         }
-
     }
-
-
 }

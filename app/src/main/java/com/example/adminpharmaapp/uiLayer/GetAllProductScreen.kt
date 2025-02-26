@@ -34,8 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.example.adminpharmaapp.navigation.Screen
 import com.example.adminpharmaapp.navigation.UpdateProduct
-import com.example.adminpharmaapp.uiLayer.UpdateScreen
 import com.example.adminpharmaapp.viewModel.AppViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,6 +48,9 @@ fun GetAllProductScreen(
     val showData = state.value.Data?.body() ?: emptyList()
     val context = LocalContext.current
     val updateState = viewModel.updateProductState.collectAsState()
+
+    val getSpecificProductState = viewModel.getSpecificProductState.collectAsState()
+    val productData = getSpecificProductState.value.Data?.body()
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
         rememberTopAppBarState()
@@ -133,13 +136,15 @@ fun GetAllProductScreen(
                                         .padding(start = 20.dp,top = 10.dp)
                                 ){
                                     Button(onClick = {
-                                        navController.navigate(UpdateProduct)
+                                       navController.navigate(Screen.updateProduct.createRoute(productId = product.product_id))
 
                                     }) {
                                         Text(text = "Update")
                                     }
                                     Spacer(modifier = Modifier.width(100.dp))
-                                    Button(onClick = {}) {
+                                    Button(onClick = {
+
+                                    }) {
                                         Text(text = "Delete")
                                     }
                                 }

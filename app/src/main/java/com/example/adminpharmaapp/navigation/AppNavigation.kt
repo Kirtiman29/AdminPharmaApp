@@ -1,6 +1,8 @@
 package com.example.adminpharmaapp.navigation
 
 import GetAllProductScreen
+import UpdateScreen
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -32,7 +34,7 @@ import com.example.adminpharmaapp.uiLayer.AddProductScreen
 
 import com.example.adminpharmaapp.uiLayer.HomeScreen
 import com.example.adminpharmaapp.uiLayer.OrderDetailScreen
-import com.example.adminpharmaapp.uiLayer.UpdateScreen
+
 
 import kotlinx.coroutines.launch
 
@@ -130,8 +132,16 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                         OrderDetailScreen(navController)
                     }
 
-                    composable<UpdateProduct> {
-                        UpdateScreen(navController)
+                    composable(Screen.updateProduct.route) { backStackEntry ->
+                        val productId = backStackEntry.arguments?.getString("productId")
+                        //requireNotNull(productId) { "Product ID is required" }
+                        //Log.d("Navigation", "Received productID: $productID")
+
+                        UpdateScreen(
+                            productId = productId.toString(),
+                            navController = navController
+
+                        )
 
                     }
 

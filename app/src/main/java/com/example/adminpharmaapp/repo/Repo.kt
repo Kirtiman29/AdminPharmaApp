@@ -5,14 +5,48 @@ import com.example.adminpharmaapp.data_layer.ApiProvider
 import com.example.adminpharmaapp.data_layer.response.DeleteSpecificUserResponce
 import com.example.adminpharmaapp.data_layer.response.GetProductResponse
 import com.example.adminpharmaapp.data_layer.response.OrderDetailResponce
+import com.example.adminpharmaapp.data_layer.response.UpdateApminProductStockResponce
 import com.example.adminpharmaapp.data_layer.response.UpdateProductResponse
 import com.example.adminpharmaapp.data_layer.response.getAllUserResponse
 import com.example.adminpharmaapp.data_layer.response.getAllUserResponseItem
+import com.example.adminpharmaapp.data_layer.response.getSpecificProductResponce
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.Response
 
 class Repo {
+
+
+    suspend fun updateAdminProductStockRepo(
+        product_id: String,
+        stock: Int,
+    ): Flow<State<Response<UpdateApminProductStockResponce>>> = flow {
+        emit(State.Loading)
+        try {
+            val updateAdminStockResponce = ApiProvider.provideApi()
+                .updateAdminProductStock(
+                    product_id = product_id,
+                    stock = stock
+                )
+            emit(State.Success(updateAdminStockResponce))
+        } catch (e: Exception){
+            emit(State.Error(e.message.toString()))
+        }
+    }
+
+    suspend fun getSpecificProductRepo(
+        product_id: String,
+    ): Flow<State<Response<getSpecificProductResponce>>> = flow {
+        emit(State.Loading)
+        try{
+            val getSpecificProductRes = ApiProvider.provideApi()
+                .getSpecificProduct(product_id = product_id)
+            emit(State.Success(getSpecificProductRes))
+
+        } catch (e: Exception){
+            emit(State.Error(e.message.toString()))
+        }
+    }
 
 
     suspend fun updateOrderRepo(

@@ -8,6 +8,7 @@ import com.example.adminpharmaapp.data_layer.response.UpdateOrderResponse
 import com.example.adminpharmaapp.data_layer.response.UpdateProductResponse
 import com.example.adminpharmaapp.data_layer.response.UpdateUserResponse
 import com.example.adminpharmaapp.data_layer.response.getAllUserResponse
+import com.example.adminpharmaapp.data_layer.response.getSpecificProductResponce
 import retrofit2.Response
 import retrofit2.http.DELETE
 import retrofit2.http.Field
@@ -20,11 +21,27 @@ import retrofit2.http.Query
 
 interface ApiServices {
 
+
+
+
     @GET("getAllUsers")
     suspend fun getAllUser(
 
     ): Response<getAllUserResponse>
 
+   @FormUrlEncoded
+   @POST("getSpecificProduct")
+   suspend fun getSpecificProduct(
+       @Field("product_id") product_id: String,
+   ): Response<getSpecificProductResponce>
+
+
+    @FormUrlEncoded
+    @PATCH("updateAdminProcutStock")
+    suspend fun updateAdminProductStock(
+        @Field("product_id") product_id: String,
+        @Field("stock") stock: Int,
+    )
     @FormUrlEncoded
     @PATCH("update_userDetail")
     suspend fun updateAllUserDetail(
@@ -39,6 +56,8 @@ interface ApiServices {
         @Field("isApproved") isApproved: Int,
 
     ): Response<UpdateOrderResponse>
+
+
 
     @FormUrlEncoded
     @PATCH("update_adminProduct")
